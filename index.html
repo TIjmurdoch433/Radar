@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Defra Sustainability Technology Radar 2026</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f5f6f0;
+    --surface:#ffffff;
+    --surface-2:#eef1e6;
+    --surface-hover:#e6eadb;
+    --text-primary:#12140f;
+    --text-secondary:#4c5245;
+    --text-muted:#82897a;
+    --border:rgba(18,20,15,0.12);
+    --ring-line:#c9cebc;
+    --grid-hair:#e3e6da;
+    --accent:#5c2a6e;
+    --accent-2:#1d7a46;
+    --priority:#b8811f;
+    --cat-1:#2a78d6; --cat-2:#eb6834; --cat-3:#1baf7a; --cat-4:#eda100;
+    --cat-5:#e87ba4; --cat-6:#008300; --cat-7:#4a3aa7; --cat-8:#e34948;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:where(:not([data-theme="light"])){
+      color-scheme: dark;
+      --bg:#0e100c;
+      --surface:#171a14;
+      --surface-2:#1e2318;
+      --surface-hover:#242b1c;
+      --text-primary:#f3f5ee;
+      --text-secondary:#c6cbb9;
+      --text-muted:#8b917f;
+      --border:rgba(255,255,255,0.14);
+      --ring-line:#333a2a;
+      --grid-hair:#242a1d;
+      --accent:#cd9fe2;
+      --accent-2:#5fcf8e;
+      --priority:#e0b84a;
+      --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70; --cat-4:#c98500;
+      --cat-5:#d55181; --cat-6:#2fae2f; --cat-7:#9085e9; --cat-8:#e66767;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0e100c; --surface:#171a14; --surface-2:#1e2318; --surface-hover:#242b1c;
+    --text-primary:#f3f5ee; --text-secondary:#c6cbb9; --text-muted:#8b917f;
+    --border:rgba(255,255,255,0.14); --ring-line:#333a2a; --grid-hair:#242a1d;
+    --accent:#cd9fe2; --accent-2:#5fcf8e; --priority:#e0b84a;
+    --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70; --cat-4:#c98500;
+    --cat-5:#d55181; --cat-6:#2fae2f; --cat-7:#9085e9; --cat-8:#e66767;
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --bg:#f5f6f0; --surface:#ffffff; --surface-2:#eef1e6; --surface-hover:#e6eadb;
+    --text-primary:#12140f; --text-secondary:#4c5245; --text-muted:#82897a;
+    --border:rgba(18,20,15,0.12); --ring-line:#c9cebc; --grid-hair:#e3e6da;
+    --accent:#5c2a6e; --accent-2:#1d7a46; --priority:#b8811f;
+    --cat-1:#2a78d6; --cat-2:#eb6834; --cat-3:#1baf7a; --cat-4:#eda100;
+    --cat-5:#e87ba4; --cat-6:#008300; --cat-7:#4a3aa7; --cat-8:#e34948;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #root{ min-height:100%; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
+  ::selection{ background:var(--accent); color:#fff; }
+
+  .app-shell{ max-width:1440px; margin:0 auto; padding:20px 20px 48px; }
+
+  .header{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:20px;
+    flex-wrap:wrap; margin-bottom:18px;
+  }
+  .brand{ display:flex; gap:14px; align-items:flex-start; }
+  .brand-bars{ display:flex; flex-direction:column; gap:3px; margin-top:4px; flex-shrink:0; }
+  .brand-bars .bar{ display:block; width:26px; height:9px; }
+  .brand-bars .bar-a{ background:var(--accent); }
+  .brand-bars .bar-b{ background:var(--accent-2); width:16px; }
+  .brand h1{
+    font-size:1.55rem; font-weight:800; letter-spacing:-0.02em; margin:0 0 4px;
+    text-wrap:balance;
+  }
+  .brand p{ margin:0; color:var(--text-secondary); font-size:0.86rem; max-width:52ch; }
+  .eyebrow{
+    font-size:0.68rem; font-weight:700; letter-spacing:0.11em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 4px;
+  }
+
+  .header-controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .search-input{
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    padding:8px 12px; font-size:0.85rem; color:var(--text-primary); min-width:220px;
+    outline:none;
+  }
+  .search-input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  .search-input::placeholder{ color:var(--text-muted); }
+
+  .segmented{ display:flex; background:var(--surface-2); border-radius:8px; padding:3px; border:1px solid var(--border); }
+  .segmented button{
+    border:none; background:transparent; padding:6px 12px; font-size:0.78rem; font-weight:600;
+    color:var(--text-secondary); border-radius:6px; cursor:pointer;
+  }
+  .segmented button.active{ background:var(--surface); color:var(--text-primary); box-shadow:0 1px 2px rgba(0,0,0,0.08); }
+
+  .icon-btn{
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    padding:7px 12px; font-size:0.78rem; font-weight:600; color:var(--text-secondary); cursor:pointer;
+  }
+  .icon-btn:hover{ background:var(--surface-hover); }
+
+  .filter-group{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .chip{
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-secondary);
+    border-radius:999px; padding:5px 11px; font-size:0.72rem; font-weight:600; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; line-height:1.1; white-space:nowrap;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+  }
+  .chip:hover{ background:var(--surface-hover); }
+  .chip .dot-swatch{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .chip.inactive{ opacity:0.45; }
+  .reset-btn{
+    margin-left:auto; border:none; background:none; color:var(--text-muted);
+    font-size:0.74rem; font-weight:600; cursor:pointer; text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .reset-btn:hover{ color:var(--text-primary); }
+
+  .priority-strip{
+    display:flex; gap:10px; overflow-x:auto; padding-bottom:6px; margin-bottom:16px;
+  }
+  .priority-card{
+    flex:0 0 auto; min-width:190px; background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:10px 12px; cursor:pointer; position:relative;
+  }
+  .priority-card.selected{ border-color:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .priority-card:hover{ background:var(--surface-hover); }
+  .priority-rank{
+    font-size:0.62rem; font-weight:800; color:var(--priority); letter-spacing:0.06em;
+  }
+  .priority-name{ font-size:0.82rem; font-weight:700; margin:2px 0 6px; line-height:1.2; }
+  .priority-meta{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+
+  .main-grid{ display:grid; grid-template-columns: 1fr 340px; gap:16px; align-items:start; margin-bottom:16px; }
+  @media (max-width: 940px){ .main-grid{ grid-template-columns: 1fr; } }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:16px;
+  }
+  .chart-panel{ min-height:560px; }
+  .chart-caption{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:8px; }
+  .chart-caption h2{ font-size:0.95rem; font-weight:750; margin:0; }
+  .chart-caption .count-pill{
+    font-size:0.68rem; font-weight:700; color:var(--text-muted); font-variant-numeric: tabular-nums;
+  }
+
+  .radar-wrap{ position:relative; max-width:760px; margin:0 auto; }
+  .radar-svg{ display:block; width:100%; height:auto; position:relative; z-index:1; }
+  .radar-sweep{
+    position:absolute; top:50%; left:50%; width:80.8%; aspect-ratio:1/1;
+    transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:0;
+    background:conic-gradient(from 0deg,
+      color-mix(in srgb, var(--accent-2) 32%, transparent) 0deg,
+      transparent 65deg, transparent 360deg);
+    animation: radar-sweep-spin 9s linear infinite;
+  }
+  @keyframes radar-sweep-spin{ from{ transform:translate(-50%,-50%) rotate(0deg); } to{ transform:translate(-50%,-50%) rotate(360deg); } }
+
+  .ring-label{ font-size:11px; font-weight:700; letter-spacing:0.06em; fill:var(--text-muted); }
+  .ring-label-bg{ fill:var(--surface); }
+  .sector-label{ font-size:20px; font-weight:750; }
+  .divider-line{ stroke:var(--text-muted); stroke-width:1.75; }
+  .ring-circle{ fill:none; stroke:var(--ring-line); stroke-width:1; stroke-dasharray:2 3; }
+  .hub-circle{ fill:var(--surface); stroke:var(--border); stroke-width:1; }
+  .hub-title{ font-size:13px; font-weight:800; letter-spacing:0.08em; fill:var(--text-primary); }
+  .hub-sub{ font-size:8px; font-weight:700; letter-spacing:0.06em; fill:var(--text-muted); }
+  .priority-ring{ stroke:var(--priority); stroke-width:1.4; stroke-dasharray:2 2; }
+  .dot-mark{ transition: r 120ms ease; }
+  .dot:focus{ outline:none; }
+  .dot:focus .dot-mark{ stroke:var(--text-primary); stroke-width:2.5px; }
+
+  .legend-swatch{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:22px; margin-top:14px; padding-top:14px;
+    border-top:1px solid var(--border); font-size:0.72rem; color:var(--text-secondary);
+  }
+  .legend-block{ display:flex; flex-direction:column; gap:6px; }
+  .legend-title{
+    font-size:0.62rem; font-weight:700; letter-spacing:0.09em; text-transform:uppercase;
+    color:var(--text-muted);
+  }
+  .legend-row{ display:flex; align-items:center; gap:7px; }
+  .legend-size-demo{ display:flex; align-items:center; gap:10px; }
+  .legend-size-dot{ border-radius:50%; background:var(--text-muted); flex-shrink:0; }
+  .legend-priority-ring{
+    width:14px; height:14px; border-radius:50%; border:1.4px dashed var(--priority); flex-shrink:0;
+  }
+
+  .table-wrap{ overflow-x:auto; }
+  table.tech-table{ width:100%; border-collapse:collapse; font-size:0.8rem; }
+  table.tech-table thead th{
+    text-align:left; font-size:0.66rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase;
+    color:var(--text-muted); padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer;
+    white-space:nowrap; position:sticky; top:0; background:var(--surface);
+  }
+  table.tech-table thead th:hover{ color:var(--text-primary); }
+  table.tech-table tbody td{ padding:9px 10px; border-bottom:1px solid var(--grid-hair); vertical-align:middle; }
+  table.tech-table tbody tr{ cursor:pointer; }
+  table.tech-table tbody tr:hover{ background:var(--surface-hover); }
+  table.tech-table tbody tr.selected{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .table-scroll{ max-height:520px; overflow-y:auto; }
+  .name-cell{ display:flex; align-items:center; gap:8px; font-weight:650; }
+  .theme-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:0.7rem; font-weight:650;
+    padding:3px 9px; border-radius:999px; background:var(--surface-2); white-space:nowrap;
+  }
+  .maturity-pill{
+    display:inline-flex; font-size:0.7rem; font-weight:650; padding:3px 9px; border-radius:999px;
+    background:var(--surface-2); color:var(--text-secondary); white-space:nowrap;
+  }
+  .num-cell{ font-variant-numeric: tabular-nums; font-weight:700; }
+
+  .intro-banner{ margin-bottom:16px; }
+  .filter-panel{ min-height:200px; }
+  .filter-panel-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+  .filter-panel .filter-group{ flex-direction:column; align-items:flex-start; gap:6px; }
+  .filter-panel .chip{ width:100%; justify-content:flex-start; }
+  .filter-panel .reset-btn{ margin-top:8px; }
+  .clear-btn{
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-secondary);
+    border-radius:6px; padding:3px 9px; font-size:0.68rem; font-weight:650; cursor:pointer;
+  }
+  .clear-btn:hover{ background:var(--surface-hover); color:var(--text-primary); }
+  .intro-card h3{ font-size:1rem; font-weight:750; margin:0 0 6px; }
+  .intro-card p{ font-size:0.83rem; color:var(--text-secondary); line-height:1.5; margin:0 0 14px; }
+  .priority-intro{ margin:6px 0 16px; max-width:78ch; }
+  .priority-intro p{ font-size:0.83rem; color:var(--text-secondary); line-height:1.55; margin:0 0 10px; }
+  .priority-intro p:last-child{ margin-bottom:0; }
+  .mix-row{ display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+  .mix-label{ width:92px; font-size:0.72rem; color:var(--text-secondary); flex-shrink:0; }
+  .mix-bar-track{ flex:1; height:8px; background:var(--surface-2); border-radius:4px; overflow:hidden; }
+  .mix-bar-fill{ height:100%; background:var(--accent-2); border-radius:4px; }
+  .mix-count{ width:22px; text-align:right; font-size:0.72rem; font-variant-numeric: tabular-nums; color:var(--text-muted); }
+
+  .detail-card{ display:flex; flex-direction:column; gap:12px; }
+  .detail-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .detail-badges{ display:flex; flex-wrap:wrap; gap:6px; }
+  .close-btn{
+    border:none; background:var(--surface-2); color:var(--text-secondary); width:26px; height:26px;
+    border-radius:50%; cursor:pointer; font-size:0.9rem; line-height:1; flex-shrink:0;
+  }
+  .close-btn:hover{ background:var(--surface-hover); color:var(--text-primary); }
+  .detail-card h3{ font-size:1.08rem; font-weight:800; margin:0; letter-spacing:-0.01em; }
+  .detail-desc{ font-size:0.82rem; color:var(--text-secondary); margin:0; line-height:1.5; }
+  .section-label{
+    font-size:0.64rem; font-weight:700; letter-spacing:0.09em; text-transform:uppercase;
+    color:var(--text-muted); margin:0 0 5px;
+  }
+  .rationale-text{ font-size:0.84rem; line-height:1.55; color:var(--text-primary); margin:0; }
+  .meter-row{ margin-bottom:10px; }
+  .meter-head{ display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-secondary); margin-bottom:4px; }
+  .meter-track{ height:8px; border-radius:4px; background:var(--surface-2); overflow:hidden; }
+  .meter-fill{ height:100%; border-radius:4px; }
+  .footer-note{
+    margin-top:26px; padding-top:16px; border-top:1px solid var(--border);
+    font-size:0.72rem; color:var(--text-muted); line-height:1.6; max-width:90ch;
+  }
+
+  .tooltip-box{
+    position:fixed; z-index:50; pointer-events:none; max-width:230px;
+    background:var(--text-primary); color:var(--bg); border-radius:8px; padding:8px 10px;
+    font-size:0.72rem; line-height:1.4; box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  }
+  .tooltip-box .tt-name{ font-weight:750; margin-bottom:2px; }
+  .tooltip-box .tt-meta{ opacity:0.8; }
+
+  .intro-splash{
+    position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
+    padding:40px 32px; overflow-y:auto;
+    background: radial-gradient(circle at 28% 18%, #1f8a52 0%, #0f4a2c 48%, #082616 100%);
+    opacity:1; transition: opacity 480ms ease;
+  }
+  .intro-splash.closing{ opacity:0; pointer-events:none; }
+  .intro-splash-card{ max-width:980px; width:100%; color:#eafaf0; }
+  .intro-splash-eyebrow{
+    font-size:0.7rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+    color:#9be6ba; margin-bottom:12px;
+  }
+  .intro-splash-title{
+    font-size:2.1rem; font-weight:800; letter-spacing:-0.02em; margin:0 0 26px; color:#ffffff;
+    text-wrap:balance;
+  }
+  .intro-splash-columns{ display:flex; gap:48px; margin-bottom:30px; }
+  .intro-splash-col{ flex:1; min-width:0; }
+  @media (max-width:760px){ .intro-splash-columns{ flex-direction:column; gap:0; } }
+  .intro-splash-section{ margin-bottom:24px; }
+  .intro-splash-section:last-child{ margin-bottom:0; }
+  .intro-splash-section h2{
+    font-size:1.3rem; font-weight:800; color:#ffffff; margin:0 0 10px;
+    letter-spacing:-0.01em; text-wrap:balance;
+  }
+  .intro-splash-section p{ font-size:0.95rem; line-height:1.65; color:#e2f7e9; margin:0 0 12px; }
+  .intro-splash-section p:last-child{ margin-bottom:0; }
+  .intro-splash-section p strong{ color:#ffffff; }
+  .intro-splash-btn{
+    background:#ffffff; color:#0f4a2c; border:none; border-radius:999px;
+    padding:13px 28px; font-size:0.88rem; font-weight:750; cursor:pointer;
+    box-shadow:0 10px 26px rgba(0,0,0,0.3);
+  }
+  .intro-splash-btn:hover{ background:#d9f9e3; }
+
+  .modal-overlay{
+    position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.45);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .modal-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:20px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  }
+
+  .live-articles{ margin-top:4px; }
+  .live-status{
+    font-size:0.8rem; color:var(--text-muted); line-height:1.5; margin:0;
+  }
+  .live-status code{
+    background:var(--surface-2); border-radius:4px; padding:1px 5px; font-size:0.78rem;
+  }
+  .article-list{ display:flex; flex-direction:column; gap:8px; }
+  .article-item{
+    display:block; text-decoration:none; color:inherit; padding:8px 10px;
+    border:1px solid var(--border); border-radius:8px; background:var(--surface-2);
+  }
+  .article-item:hover{ background:var(--surface-hover); border-color:var(--accent); }
+  .article-title{ font-size:0.82rem; font-weight:700; color:var(--text-primary); line-height:1.35; }
+  .article-meta{ font-size:0.68rem; color:var(--text-muted); margin-top:3px; }
+  .article-summary{ font-size:0.76rem; color:var(--text-secondary); margin-top:5px; line-height:1.4; }
+
+  .briefing-table{ width:100%; min-width:640px; border-collapse:collapse; font-size:0.82rem; }
+  .briefing-table th{
+    text-align:left; font-size:0.64rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase;
+    color:var(--text-muted); padding:10px 12px; border-bottom:1px solid var(--border);
+    background:var(--surface-2); white-space:nowrap;
+  }
+  .briefing-table td{ padding:14px 12px; border-bottom:1px solid var(--grid-hair); vertical-align:top; line-height:1.5; }
+  .briefing-table tr:last-child td{ border-bottom:none; }
+  .briefing-tech-cell{ min-width:190px; max-width:220px; cursor:pointer; }
+  .briefing-tech-cell:hover .briefing-tech-name{ color:var(--accent); text-decoration:underline; }
+  .briefing-rank{ display:block; font-size:0.62rem; font-weight:800; color:var(--priority); letter-spacing:0.06em; margin-bottom:3px; }
+  .briefing-tech-name{ display:block; font-weight:750; font-size:0.86rem; color:var(--text-primary); margin-bottom:7px; }
+  .briefing-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:0.7rem; font-weight:650;
+    color:var(--text-secondary); background:var(--surface-2); padding:3px 9px; border-radius:999px;
+    font-variant-numeric: tabular-nums;
+  }
+  .briefing-why{ color:var(--text-secondary); max-width:34ch; }
+  .briefing-steps{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:8px; max-width:38ch; }
+  .briefing-steps li strong{ color:var(--text-primary); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const { useState, useMemo, useRef, useEffect } = React;
+const h = React.createElement;
+
+const THEMES = [
+  { key:'env', name:'Environmental Intelligence & Monitoring', lines:['Environmental Intelligence','& Monitoring'] },
+  { key:'comp', name:'Advanced Computing & Materials', lines:['Advanced Computing','& Materials'] },
+  { key:'batt', name:'Advanced Batteries & Electrification', lines:['Advanced Batteries','& Electrification'] },
+  { key:'infra', name:'Infrastructure & Energy Efficiency', lines:['Infrastructure &','Energy Efficiency'] },
+  { key:'cloud', name:'Cloud Sustainability & Optimisation', lines:['Cloud Sustainability','& Optimisation'] },
+  { key:'ai', name:'Green AI & Software Efficiency', lines:['Green AI &','Software Efficiency'] },
+  { key:'supply', name:'Supply Chain Transparency & Traceability', lines:['Supply Chain Transparency','& Traceability'] },
+  { key:'circular', name:'Circularity & Lifecycle Sustainability', lines:['Circularity & Lifecycle','Sustainability'] },
+];
+THEMES.forEach((t,i)=>{ t.slot = i+1; });
+const THEME_SLOT = {};
+THEMES.forEach(t=>{ THEME_SLOT[t.name] = t.slot; });
+
+const MATURITIES = ['Embryonic','Emerging','Developing','Mainstream'];
+const MATURITY_START = { Embryonic:-90, Emerging:0, Developing:90, Mainstream:180 };
+const BENEFITS = ['Transformational','High','Moderate'];
+function priorityRadius(overall){
+  return overall >= 8 ? 11.5 : overall >= 6 ? 8.5 : 6.5;
+}
+
+const DATA = [
+  { id:'env-sensing-analytics', name:'Environmental sensing and analytics', theme:'Environmental Intelligence & Monitoring', maturity:'Mainstream', benefit:'Transformational', overall:9.00, material:9, description:'Sensors and analytics for environmental measurement and insight.', rationale:'Provides Defra group with better real-world evidence for water, air, soil, biodiversity, climate and waste outcomes.' },
+  { id:'intelligent-energy-mgmt', name:'Intelligent energy management', theme:'Cloud Sustainability & Optimisation', maturity:'Mainstream', benefit:'High', overall:8.85, material:9, description:'Software and control systems that optimise energy use dynamically.', rationale:'Can reduce unnecessary power use across datacentres, buildings and operational infrastructure used by Defra group and its ALBs.' },
+  { id:'smart-demand-mgmt', name:'Smart demand management', theme:'Infrastructure & Energy Efficiency', maturity:'Mainstream', benefit:'High', overall:8.85, material:9, description:'Digital optimisation of when and how energy is consumed.', rationale:'Helps lower energy cost and grid pressure by shifting or reducing demand across buildings, digital infrastructure and operational assets.' },
+  { id:'smart-infra-systems', name:'Smart infrastructure systems', theme:'Infrastructure & Energy Efficiency', maturity:'Mainstream', benefit:'Transformational', overall:8.85, material:9, description:'Digitally enabled infrastructure with sensing, control and optimisation capabilities.', rationale:'Can help Defra group assets monitor performance, anticipate failures, optimise energy use and improve resilience across estates and monitoring networks.' },
+  { id:'digital-monitoring', name:'Digital monitoring', theme:'Environmental Intelligence & Monitoring', maturity:'Mainstream', benefit:'Transformational', overall:8.80, material:9, description:'Digital technologies for tracking conditions or performance over time.', rationale:'Supports Defra group by increasing visibility of environmental assets, operational performance and sustainability indicators with less reliance on manual processes.' },
+  { id:'env-monitoring-platforms', name:'Environmental monitoring platforms', theme:'Environmental Intelligence & Monitoring', maturity:'Mainstream', benefit:'Transformational', overall:8.80, material:9, description:'Platforms for collecting and analysing environmental measurements.', rationale:'Can bring together water, air, land, biodiversity and operational data to support better evidence-led regulation and intervention.' },
+  { id:'circular-economy-infra', name:'Circular economy infrastructure', theme:'Circularity & Lifecycle Sustainability', maturity:'Developing', benefit:'Transformational', overall:8.55, material:9, description:'Infrastructure that enables repair, reuse, recycling and material recovery.', rationale:'Supports Defra group objectives around resource efficiency, waste reduction and circular economy delivery by enabling physical and digital systems for reuse and recovery.' },
+  { id:'lifecycle-thinking', name:'Lifecycle thinking', theme:'Circularity & Lifecycle Sustainability', maturity:'Mainstream', benefit:'High', overall:8.45, material:8, description:'Whole-life assessment approach for products, services and assets.', rationale:'Provides a decision lens for Defra group to avoid shifting environmental impacts from one stage of an asset or service lifecycle to another.' },
+  { id:'energy-dashboards', name:'Energy dashboards', theme:'Infrastructure & Energy Efficiency', maturity:'Mainstream', benefit:'High', overall:8.45, material:8, description:'Digital dashboards that monitor energy use and performance.', rationale:'Can give Defra group visibility of energy use, wastage, peaks and progress against sustainability goals.' },
+  { id:'ai-monitoring-systems', name:'AI-enabled monitoring systems', theme:'Environmental Intelligence & Monitoring', maturity:'Developing', benefit:'High', overall:8.35, material:9, description:'Monitoring systems that use AI to detect patterns, risks or anomalies.', rationale:'Can accelerate detection of anomalies, risks and patterns in large environmental datasets, improving response speed and targeting.' },
+  { id:'verified-sourcing', name:'Verified sourcing', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'Transformational', overall:8.35, material:9, description:'Technologies for confirming origin, provenance or supplier claims.', rationale:'Helps Defra group improve assurance that products, materials or services are sourced from credible suppliers with evidence of sustainability performance.' },
+  { id:'transparent-chain-tech', name:'Transparent chain technologies', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'Transformational', overall:8.35, material:9, description:'Traceability systems that make chain-of-custody visible.', rationale:'Can improve visibility of supply chains that affect environmental risk, compliance, food systems, waste, critical materials and public procurement.' },
+  { id:'workload-optimisation', name:'Workload optimisation', theme:'Green AI & Software Efficiency', maturity:'Mainstream', benefit:'High', overall:8.30, material:8, description:'Techniques for improving how digital and AI workloads are scheduled, sized, tuned and run.', rationale:'Can reduce avoidable cloud consumption and infrastructure load across data platforms, analytics and AI services.' },
+  { id:'digital-logistics-systems', name:'Digital logistics systems', theme:'Supply Chain Transparency & Traceability', maturity:'Mainstream', benefit:'High', overall:8.30, material:8, description:'Digital tools for managing logistics operations.', rationale:'Can reduce emissions and improve resilience by optimising routing, loads, inventory and movement of goods or equipment.' },
+  { id:'sustainable-cloud', name:'Sustainable cloud', theme:'Cloud Sustainability & Optimisation', maturity:'Developing', benefit:'High', overall:8.15, material:8, description:'Cloud services and practices designed to reduce environmental impact.', rationale:'Defra group relies on hosted services and data platforms; better cloud configuration can reduce cost, energy demand and carbon impact.' },
+  { id:'supplier-scorecards', name:'Supplier scorecards', theme:'Supply Chain Transparency & Traceability', maturity:'Mainstream', benefit:'High', overall:8.10, material:8, description:'Digital scorecards for supplier performance and sustainability metrics.', rationale:'Can help Defra group compare suppliers on sustainability performance, risk and improvement actions in a consistent way.' },
+  { id:'component-recovery', name:'Component recovery', theme:'Circularity & Lifecycle Sustainability', maturity:'Developing', benefit:'High', overall:8.05, material:8, description:'Recovery of usable components from products or equipment.', rationale:'Can reduce waste and recover value from end-of-life equipment, including ICT, monitoring devices and operational assets.' },
+  { id:'battery-mgmt-systems', name:'Battery management systems', theme:'Advanced Batteries & Electrification', maturity:'Mainstream', benefit:'High', overall:8.00, material:8, description:'Systems for monitoring and controlling battery performance.', rationale:'Help maximise battery life, safety and performance, reducing waste and improving the value of electrified assets.' },
+  { id:'smart-infra-monitoring', name:'Smart infrastructure monitoring', theme:'Environmental Intelligence & Monitoring', maturity:'Mainstream', benefit:'High', overall:8.00, material:8, description:'Sensor and analytics systems for infrastructure condition and performance.', rationale:'Can improve the resilience and efficiency of Defra group assets by detecting condition, performance or failure risks earlier.' },
+  { id:'onsite-power-generation', name:'On-site power generation', theme:'Infrastructure & Energy Efficiency', maturity:'Mainstream', benefit:'High', overall:8.00, material:8, description:'Electricity generation located at or near the point of use.', rationale:'Can reduce dependency on external supply and support lower-carbon, resilient operations at appropriate Defra group locations.' },
+  { id:'lifecycle-optimisation', name:'Lifecycle optimisation', theme:'Circularity & Lifecycle Sustainability', maturity:'Developing', benefit:'High', overall:8.00, material:8, description:'Digital and analytical methods for improving whole-life asset performance.', rationale:'Can help Defra group improve procurement, asset management and disposal decisions by considering carbon, cost and value across the whole lifecycle.' },
+  { id:'verifiable-sustainability', name:'Verifiable sustainability', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'High', overall:8.00, material:8, description:'Digital evidence systems for sustainability claims.', rationale:'Supports Defra group by making sustainability claims easier to evidence, audit and challenge across procurement and regulated sectors.' },
+  { id:'cleaner-propulsion', name:'Cleaner propulsion technologies', theme:'Advanced Batteries & Electrification', maturity:'Developing', benefit:'High', overall:7.85, material:8, description:'Lower-emission propulsion systems for vehicles or equipment.', rationale:'Can reduce emissions from fleets, field equipment or specialist operational assets that are difficult to decarbonise through standard electrification alone.' },
+  { id:'renewable-powered-compute', name:'Renewable-powered compute', theme:'Cloud Sustainability & Optimisation', maturity:'Developing', benefit:'High', overall:7.85, material:8, description:'Compute resources powered by renewable electricity procurement or generation.', rationale:'Can help Defra group reduce the environmental footprint of cloud and AI services by shifting electricity supply towards low-carbon sources.' },
+  { id:'supply-chain-monitoring', name:'Supply-chain monitoring', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'High', overall:7.80, material:8, description:'Platforms and analytics for monitoring supply-chain performance and risk.', rationale:'Allows Defra group to identify supply risks, sustainability issues and assurance gaps earlier across complex supplier networks.' },
+  { id:'advanced-battery-chem', name:'Advanced battery chemistries', theme:'Advanced Batteries & Electrification', maturity:'Developing', benefit:'High', overall:7.70, material:8, description:'Next-generation battery materials and chemistries.', rationale:'Can improve storage performance, lifespan and safety, supporting electrification and renewable energy use across operations and infrastructure.' },
+  { id:'short-duration-storage', name:'Short-duration energy storage', theme:'Infrastructure & Energy Efficiency', maturity:'Developing', benefit:'High', overall:7.70, material:8, description:'Storage technologies for short-term balancing of electricity supply and demand.', rationale:'Could help Defra group reduce peaks, manage intermittent renewable generation and improve resilience for operational sites.' },
+  { id:'recycling-partnerships', name:'Recycling partnerships', theme:'Circularity & Lifecycle Sustainability', maturity:'Mainstream', benefit:'Moderate', overall:7.65, material:7, description:'Collaborative recycling models using shared capability or data.', rationale:'Can improve outcomes where Defra group depends on suppliers, local authorities, ALBs or specialist providers to recover materials from complex products.' },
+  { id:'sustainable-ai-frameworks', name:'Sustainable AI frameworks', theme:'Green AI & Software Efficiency', maturity:'Developing', benefit:'High', overall:7.65, material:8, description:'Assessment and governance methods for measuring and reducing the sustainability impact of AI systems.', rationale:'Would help Defra group assess and govern AI adoption in a consistent way, linking AI benefits to energy, cost, carbon, risk and value.' },
+  { id:'supply-chain-alignment', name:'Supply chain alignment', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'High', overall:7.65, material:8, description:'Coordination of supplier, procurement and operational data.', rationale:'Helps ensure supplier data, procurement choices and sustainability objectives are aligned rather than managed separately.' },
+  { id:'rare-earth-free-motors', name:'Rare earth-free motors', theme:'Advanced Batteries & Electrification', maturity:'Developing', benefit:'High', overall:7.55, material:8, description:'Electric motors designed without rare-earth magnets.', rationale:'Can reduce dependency on critical materials and improve sustainability of electrified vehicles, pumps, equipment and infrastructure.' },
+  { id:'ai-driven-process-control', name:'AI-driven process control', theme:'Green AI & Software Efficiency', maturity:'Developing', benefit:'High', overall:7.55, material:8, description:'AI systems that optimise processes by adjusting settings or recommendations using live and historical operational data.', rationale:'Could help Defra group and ALBs reduce energy, chemical use, waste or operational inefficiency in monitored assets, laboratories and sites.' },
+  { id:'battery-deployment', name:'Battery deployment', theme:'Infrastructure & Energy Efficiency', maturity:'Developing', benefit:'High', overall:7.55, material:8, description:'Deployment of battery storage for operational energy needs.', rationale:'Can support resilience, peak reduction and renewable energy use across Defra group estates, laboratories, operational sites and field infrastructure.' },
+  { id:'battery-integration', name:'Battery integration', theme:'Infrastructure & Energy Efficiency', maturity:'Developing', benefit:'High', overall:7.55, material:8, description:'Integration of batteries into operational systems and assets.', rationale:'Ensures storage is usable within buildings, vehicles, infrastructure and monitoring assets rather than being treated as a standalone technology.' },
+  { id:'green-ai', name:'Green AI', theme:'Green AI & Software Efficiency', maturity:'Developing', benefit:'High', overall:7.50, material:8, description:'AI design and operating practices focused on reducing the environmental footprint of AI use.', rationale:'Provides a way to adopt AI while reducing unnecessary compute, energy demand and carbon impact across services.' },
+  { id:'model-right-sizing', name:'Model right-sizing', theme:'Green AI & Software Efficiency', maturity:'Developing', benefit:'High', overall:7.50, material:8, description:'Selection of the least complex AI model that can reliably deliver the required outcome.', rationale:'Many Defra group use cases may not need the largest or most energy-intensive model; choosing smaller models reduces cost and carbon.' },
+  { id:'future-ready-supply-chains', name:'Future-ready supply chains', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'High', overall:7.50, material:8, description:'Adaptive supply-chain technologies and operating models.', rationale:'Supports Defra group resilience by preparing supply chains for climate, resource, regulatory and technology change.' },
+  { id:'vehicle-to-grid', name:'Vehicle-to-grid technologies', theme:'Advanced Batteries & Electrification', maturity:'Emerging', benefit:'High', overall:7.40, material:8, description:'Technologies that allow EVs to export power to buildings or the grid.', rationale:'Could allow electric fleet assets to support energy resilience, peak reduction and grid flexibility when vehicles are not in active use.' },
+  { id:'liquid-cooling', name:'Liquid cooling', theme:'Cloud Sustainability & Optimisation', maturity:'Developing', benefit:'High', overall:7.05, material:7, description:'Cooling systems that use liquid to transfer heat away from processors or server equipment.', rationale:'Can reduce the energy required to cool high-density compute, particularly for AI infrastructure used through cloud providers.' },
+  { id:'renewable-cloud-regions', name:'Renewable cloud regions', theme:'Cloud Sustainability & Optimisation', maturity:'Developing', benefit:'Moderate', overall:7.00, material:7, description:'Cloud regions associated with renewable electricity supply or lower-carbon operation.', rationale:'Workload placement can influence the carbon impact of digital services when regions have different electricity mixes.' },
+  { id:'prompt-efficiency', name:'Prompt efficiency', theme:'Green AI & Software Efficiency', maturity:'Developing', benefit:'Moderate', overall:6.95, material:7, description:'Methods for reducing the token volume and repeated processing required by generative AI interactions.', rationale:'Wider use of generative AI could increase token consumption, cost and energy use unless prompts are optimised.' },
+  { id:'real-time-grid-coordination', name:'Real-time grid coordination', theme:'Cloud Sustainability & Optimisation', maturity:'Emerging', benefit:'High', overall:6.75, material:7, description:'Digital coordination between energy demand, storage, compute and grid conditions.', rationale:'Could help align compute demand with electricity availability, reducing grid stress and improving use of renewable energy.' },
+  { id:'regional-supply-networks', name:'Regional supply networks', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'Moderate', overall:6.70, material:7, description:'Regionalised networks for sourcing, processing and logistics.', rationale:'Could improve resilience and reduce transport impacts where regional sourcing or processing is viable for Defra group or sectors it influences.' },
+  { id:'magnet-recycling', name:'Magnet recycling', theme:'Circularity & Lifecycle Sustainability', maturity:'Emerging', benefit:'High', overall:6.60, material:7, description:'Recovery of magnets or magnet materials from end-of-life equipment.', rationale:'Important for reducing dependency on virgin rare-earth materials used in motors, electronics and clean technologies.' },
+  { id:'rare-earth-recovery', name:'Rare-earth recovery', theme:'Circularity & Lifecycle Sustainability', maturity:'Emerging', benefit:'High', overall:6.60, material:7, description:'Recovery of rare-earth elements from waste streams or used components.', rationale:'Could reduce resource risk and environmental impact associated with critical minerals used in clean energy and digital technologies.' },
+  { id:'regional-power-integration', name:'Regional power integration', theme:'Infrastructure & Energy Efficiency', maturity:'Developing', benefit:'Moderate', overall:6.55, material:7, description:'Coordination of power systems across regional infrastructure.', rationale:'Supports thinking about resilience and renewable energy access where Defra group assets depend on local and regional energy constraints.' },
+  { id:'ai-datacentres', name:'AI datacentres', theme:'Cloud Sustainability & Optimisation', maturity:'Developing', benefit:'High', overall:6.50, material:7, description:'Specialised datacentres designed to host high-density AI compute workloads.', rationale:'Increasing use of AI can shift sustainability pressure from software into power, cooling and infrastructure demand that Defra must plan for.' },
+  { id:'edge-ai', name:'Edge AI', theme:'Green AI & Software Efficiency', maturity:'Developing', benefit:'High', overall:6.50, material:7, description:'AI processing performed close to the sensor, device or operational asset.', rationale:'Many Defra group monitoring and field scenarios could benefit from local analysis that reduces data transfer, improves response and lowers energy use.' },
+  { id:'formal-supply-chains', name:'Formal supply chains', theme:'Supply Chain Transparency & Traceability', maturity:'Developing', benefit:'Moderate', overall:6.50, material:7, description:'Structured and digitally recorded supply-chain systems.', rationale:'Can improve assurance where informal or fragmented chains make environmental compliance and provenance difficult to evidence.' },
+  { id:'semi-solid-state-batteries', name:'Semi-solid-state batteries', theme:'Advanced Batteries & Electrification', maturity:'Emerging', benefit:'Moderate', overall:6.40, material:7, description:'Battery technologies using semi-solid electrolyte or electrode designs.', rationale:'Could improve battery safety and performance for future fleet, equipment or infrastructure applications, though commercial maturity is still developing.' },
+  { id:'ai-foundation-models-energy', name:'AI foundation models for energy management', theme:'Green AI & Software Efficiency', maturity:'Emerging', benefit:'High', overall:6.40, material:7, description:'Large AI models configured to forecast, optimise or coordinate energy systems.', rationale:'Could help Defra group explore more advanced forecasting and optimisation for estates, energy demand and infrastructure.' },
+  { id:'quantum-computing', name:'Quantum computing', theme:'Advanced Computing & Materials', maturity:'Embryonic', benefit:'Transformational', overall:6.25, material:7, description:'Quantum computing methods for modelling chemistry and materials.', rationale:'Could accelerate discovery of lower-carbon materials, pollution remediation methods, carbon capture materials and environmentally beneficial chemistry.' },
+  { id:'energy-native-datacentres', name:'Energy-native datacentres', theme:'Cloud Sustainability & Optimisation', maturity:'Emerging', benefit:'High', overall:6.25, material:7, description:'Datacentre designs planned around energy availability, generation, storage and grid connection.', rationale:'Points to future hosting models where compute is planned around renewable energy supply and grid capacity.' },
+  { id:'autonomous-drone-swarms', name:'Autonomous drone swarms', theme:'Environmental Intelligence & Monitoring', maturity:'Embryonic', benefit:'Transformational', overall:6.25, material:7, description:'Autonomous drone or robotic systems for ecological monitoring.', rationale:'Could transform biodiversity and habitat monitoring by using coordinated autonomous systems to collect frequent evidence over large or difficult-to-access areas.' },
+  { id:'advanced-rack-cooling', name:'Advanced rack cooling', theme:'Cloud Sustainability & Optimisation', maturity:'Developing', benefit:'Moderate', overall:6.20, material:6, description:'Cooling technologies for high-density server racks.', rationale:'AI and high-performance computing create higher rack densities, increasing the need for efficient cooling approaches.' },
+  { id:'engineered-living-materials', name:'Engineered living materials', theme:'Advanced Computing & Materials', maturity:'Embryonic', benefit:'High', overall:6.10, material:7, description:'Bioengineered materials with living or programmable functions.', rationale:'Could provide future sustainable materials that self-repair, sense conditions, support pollution remediation or reduce resource consumption.' },
+  { id:'silicon-photonics', name:'Silicon photonics', theme:'Advanced Computing & Materials', maturity:'Developing', benefit:'High', overall:5.70, material:6, description:'Silicon-based optical components for high-speed data transfer.', rationale:'Could reduce the energy cost of data movement in future AI and data-centre infrastructure that underpins digital services and environmental analytics.' },
+  { id:'on-device-ai', name:'On-device AI', theme:'Green AI & Software Efficiency', maturity:'Developing', benefit:'Moderate', overall:5.65, material:6, description:'AI inference running directly on laptops, mobile devices, sensors or embedded systems.', rationale:'Could support lower-power, lower-latency environmental monitoring tools and mobile applications where connectivity or central processing is limited.' },
+  { id:'quantum-sensing-networks', name:'Quantum sensing networks', theme:'Environmental Intelligence & Monitoring', maturity:'Embryonic', benefit:'Transformational', overall:5.55, material:6, description:'Networked quantum sensors for highly sensitive environmental measurement.', rationale:'Could provide future ultra-sensitive measurement of environmental, chemical, geophysical or infrastructure signals difficult to detect with current sensors.' },
+  { id:'photonic-integrated-circuits', name:'Photonic integrated circuits', theme:'Advanced Computing & Materials', maturity:'Emerging', benefit:'High', overall:5.55, material:6, description:'Integrated circuits that use light for signal transmission or processing.', rationale:'Could support more energy-efficient communications and sensing systems relevant to future monitoring and compute infrastructure.' },
+  { id:'optical-io', name:'Optical I/O', theme:'Advanced Computing & Materials', maturity:'Emerging', benefit:'High', overall:5.55, material:6, description:'Optical input/output technologies for high-bandwidth data movement.', rationale:'Can improve energy efficiency and bandwidth for data movement in future high-performance computing and AI infrastructure.' },
+  { id:'co-packaged-optics', name:'Co-packaged optics', theme:'Advanced Computing & Materials', maturity:'Emerging', benefit:'High', overall:5.55, material:6, description:'Optical components packaged close to compute or networking chips.', rationale:'Could lower energy used in high-bandwidth data transfer by placing optical components close to processors and switches.' },
+  { id:'neuromorphic-computing', name:'Neuromorphic computing', theme:'Green AI & Software Efficiency', maturity:'Embryonic', benefit:'High', overall:4.75, material:5, description:'Brain-inspired computing hardware and algorithms designed for ultra-low-power event-driven AI.', rationale:'Could eventually support very low-power AI for remote environmental sensors, autonomous monitoring systems and field devices.' },
+  { id:'hyperscaler-nuclear-power', name:'Hyperscaler nuclear power', theme:'Cloud Sustainability & Optimisation', maturity:'Emerging', benefit:'Moderate', overall:4.55, material:5, description:'Use of nuclear power procurement or partnerships by large cloud providers.', rationale:'A market signal that major cloud providers are seeking firm low-carbon power for AI and datacentre growth, which could shape future energy markets.' },
+  { id:'hydrogen-integrated-compute', name:'Hydrogen-integrated compute', theme:'Infrastructure & Energy Efficiency', maturity:'Emerging', benefit:'Moderate', overall:4.55, material:5, description:'Compute infrastructure integrated with hydrogen energy systems.', rationale:'Could be relevant for future remote or resilient compute where hydrogen production, storage or power systems combine with digital infrastructure.' },
+];
+
+const DATA_BY_ID = {};
+DATA.forEach(d => { DATA_BY_ID[d.id] = d; });
+
+const PRIORITY_BRIEFINGS = [
+  {
+    id:'env-sensing-analytics',
+    whyItMatters:'This technology provides real-time, granular observations of air quality, soil health, water catchment purity, and biodiversity indicators across the UK. For Defra, modernising environmental sensing transitions statutory reporting from slow, reactive sampling to continuous predictive analytics. It directly strengthens catchment management, accelerates flood risk response through early warning systems, and provides robust verification data for Environmental Land Management (ELM) scheme outcomes.',
+    nextSteps: [
+      { title:'Standardise Data Ingestion', description:'Establish unified IoT data standards across the Environment Agency and Natural England to integrate disparate sensor feeds into a central data lake.' },
+      { title:'Deploy Regional Pilots', description:'Run target catchment trials embedding low-cost soil moisture, nitrate, and acoustic biodiversity sensors alongside satellite earth observation data.' },
+      { title:'Automate Compliance', description:'Develop AI analytics pipelines to automatically detect pollution events and flag agricultural policy non-compliance in real time.' }
+    ]
+  },
+  {
+    id:'intelligent-energy-mgmt',
+    whyItMatters:'Intelligent energy management leverages algorithmic optimization and automated controls to dynamically balance energy generation, storage, and consumption. Defra oversees extensive operational infrastructure—including large-scale pumping stations, flood barriers, laboratory facilities, and rural estates—which consume significant power. Adopting intelligent energy management allows Defra to lower carbon emissions, lower public sector energy expenditures, and support off-grid resilience in agricultural communities.',
+    nextSteps: [
+      { title:'Estate Energy Audit', description:'Conduct automated energy profiling across core Environment Agency pumping stations and Fera Science laboratories to identify load-shifting opportunities.' },
+      { title:'Smart Microgrid Deployment', description:'Pilot localized solar, wind, and battery storage microgrids at critical flood defense assets to guarantee operational continuity during power outages.' },
+      { title:'Agritech Guidance', description:'Publish best-practice frameworks and grant incentives for farmers adopting smart energy grids in greenhouse and livestock operations.' }
+    ]
+  },
+  {
+    id:'smart-demand-mgmt',
+    whyItMatters:'Smart demand management uses predictive modeling, behavioral incentives, and automated throttle mechanisms to dynamically manage resource utilization—particularly water and energy—during peak periods or scarcity events. As climate change increases drought frequency and water stress across the UK, Defra must transition from supply-side expansion to active demand orchestration across agricultural, commercial, and domestic sectors to safeguard natural water security.',
+    nextSteps: [
+      { title:'Dynamic Abstraction Licensing', description:'Modernise water abstraction frameworks by integrating dynamic, automated licensing that adjusts farm extraction caps based on live river flow data.' },
+      { title:'Smart Meter & Tariff Incentives', description:'Work with Ofwat and water companies to scale smart metering and dynamic tariffs that discourage peak-demand water usage during dry spells.' },
+      { title:'Predictive Demand Forecasting', description:'Integrate machine learning models that correlate weather predictions with agricultural irrigation needs to optimize regional supply allocation.' }
+    ]
+  },
+  {
+    id:'smart-infra-systems',
+    whyItMatters:'Smart infrastructure systems integrate embedded sensors, Digital Twins, and automated structural health monitoring into physical assets such as dams, sea defenses, drainage networks, and rural transport routes. For Defra and its delivery bodies, smart infrastructure extends asset lifespans, reduces maintenance costs via predictive engineering, and prevents catastrophic failures in critical national flood and coastal defense assets amidst extreme weather events.',
+    nextSteps: [
+      { title:'Digital Twin Creation', description:'Develop high-fidelity Digital Twins for major national flood barriers (e.g., Thames Barrier and major coastal defenses) to simulate storm surge stresses.' },
+      { title:'IoT Asset Telemetry', description:'Retrofit legacy flood gates, culverts, and reservoir dams with acoustic, vibration, and structural displacement sensors for real-time risk assessment.' },
+      { title:'Procurement Standards', description:"Mandate 'Smart Infrastructure by Design' specifications in all future public flood defense construction contracts and capital grants." }
+    ]
+  },
+  {
+    id:'digital-monitoring',
+    whyItMatters:'Digital monitoring encompasses remote sensing (satellite radar, multi-spectral drone surveys), automated image recognition, and digital tracking systems to monitor land use, forestry cover, illegal waste dumping, and supply chain traceability. This technology enables Defra to enforce environmental regulations efficiently at nationwide scale without reliance on resource-intensive physical site inspections.',
+    nextSteps: [
+      { title:'Satellite ELM Verification', description:'Scale the use of Sentinel satellite imagery and AI to automatically audit land cover, hedges, and crop rotation for ELM scheme payments.' },
+      { title:'Digital Waste Tracking', description:'Accelerate the rollout of mandatory digital waste tracking systems using smart logging to eliminate illegal fly-tipping and waste crime.' },
+      { title:'Drone & Computer Vision Audits', description:'Equipping enforcement teams with autonomous drones for rapid inspection of remote forestry, coastal marine habitats, and protected sites.' }
+    ]
+  }
+];
+
+const DIMS = { cx:500, cy:500, inner:64, outer:404 };
+const RING_WIDTH = (DIMS.outer - DIMS.inner) / BENEFITS.length;
+const RING_BOUNDS = {};
+BENEFITS.forEach((b,i)=>{ RING_BOUNDS[b] = [DIMS.inner + i*RING_WIDTH, DIMS.inner + (i+1)*RING_WIDTH]; });
+const SECTOR_BOUNDS = {};
+MATURITIES.forEach(m=>{ const s = MATURITY_START[m]; SECTOR_BOUNDS[m] = [s, s+90]; });
+
+function polarToXY(angleDeg, r){
+  const rad = (angleDeg - 90) * Math.PI / 180;
+  return [DIMS.cx + r*Math.cos(rad), DIMS.cy + r*Math.sin(rad)];
+}
+
+function layoutAll(data){
+  const buckets = new Map();
+  data.forEach(d=>{
+    const key = d.maturity + '|' + d.benefit;
+    if(!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(d);
+  });
+  const out = [];
+  buckets.forEach((items, key)=>{
+    const [maturity, benefit] = key.split('|');
+    const [a0,a1] = SECTOR_BOUNDS[maturity];
+    const [r0,r1] = RING_BOUNDS[benefit];
+    const angPad = (a1-a0)*0.14;
+    const radPad = (r1-r0)*0.12;
+    const aStart = a0+angPad, aEnd = a1-angPad;
+    const rStart = r0+radPad, rEnd = r1-radPad;
+    const sorted = [...items].sort((x,y)=>x.name.localeCompare(y.name));
+    const n = sorted.length;
+    const cols = Math.min(n,6);
+    const rows = Math.ceil(n/cols);
+    sorted.forEach((d,i)=>{
+      const row = Math.floor(i/cols);
+      const rowStartIdx = row*cols;
+      const itemsInRow = Math.min(cols, n-rowStartIdx);
+      const colIdx = i - rowStartIdx;
+      const angle = itemsInRow>1 ? aStart + (aEnd-aStart)*(colIdx/(itemsInRow-1)) : (aStart+aEnd)/2;
+      let radius = rows>1 ? rStart + (rEnd-rStart)*(row/(rows-1)) : (rStart+rEnd)/2;
+      if(d.id === 'autonomous-drone-swarms') radius = rEnd;
+      const [x,y] = polarToXY(angle, radius);
+      out.push(Object.assign({}, d, { x, y }));
+    });
+  });
+  return out;
+}
+
+function RadarChart({ data, allData, selectedId, onSelect, onHover, onHoverEnd }){
+  const svgRef = useRef(null);
+  const positioned = useMemo(()=>layoutAll(allData), [allData]);
+  const includedIds = useMemo(()=> new Set(data.map(d=>d.id)), [data]);
+
+  useEffect(()=>{
+    if(!svgRef.current) return;
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
+    const g = svg.append('g');
+
+    const ringRadii = BENEFITS.map(b=>RING_BOUNDS[b][1]);
+
+    g.append('g').selectAll('circle')
+      .data([...ringRadii].reverse())
+      .join('circle')
+      .attr('cx', DIMS.cx).attr('cy', DIMS.cy)
+      .attr('r', r=>r)
+      .style('fill', 'var(--text-primary)')
+      .style('fill-opacity', (r,i)=>[0.025,0.045,0.07][i])
+      .style('stroke','none');
+
+    g.append('g').selectAll('line')
+      .data(MATURITIES)
+      .join('line')
+      .attr('class','divider-line')
+      .each(function(m){
+        const a0 = SECTOR_BOUNDS[m][0];
+        const [x1,y1] = polarToXY(a0, DIMS.inner);
+        const [x2,y2] = polarToXY(a0, DIMS.outer);
+        d3.select(this).attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2);
+      });
+
+    g.append('g').selectAll('circle')
+      .data(ringRadii)
+      .join('circle')
+      .attr('class','ring-circle')
+      .attr('cx', DIMS.cx).attr('cy', DIMS.cy).attr('r', r=>r);
+
+    g.append('g').selectAll('text')
+      .data(MATURITIES)
+      .join('text')
+      .attr('class','sector-label')
+      .attr('text-anchor','middle')
+      .style('fill','var(--text-secondary)')
+      .attr('transform', m=>{
+        const [a0,a1] = SECTOR_BOUNDS[m];
+        const [x,y] = polarToXY((a0+a1)/2, DIMS.outer + 58);
+        return `translate(${x},${y})`;
+      })
+      .text(m=>m);
+
+    const hub = g.append('g').attr('transform', `translate(${DIMS.cx},${DIMS.cy})`);
+    hub.append('circle').attr('class','hub-circle').attr('r', DIMS.inner-6);
+    hub.append('text').attr('class','hub-title').attr('text-anchor','middle').attr('y',-6).text('DEFRA');
+    hub.append('text').attr('class','hub-sub').attr('text-anchor','middle').attr('y',10).text('SUSTAINABILITY');
+    hub.append('text').attr('class','hub-sub').attr('text-anchor','middle').attr('y',20).text('RADAR 2026');
+
+    const dotG = g.append('g').selectAll('g.dot')
+      .data(positioned, d=>d.id)
+      .join('g')
+      .attr('class','dot')
+      .attr('transform', d=>`translate(${d.x},${d.y})`)
+      .attr('tabindex', 0)
+      .attr('role','button')
+      .attr('aria-label', d=>`${d.name}. ${d.theme}. ${d.maturity} maturity. ${d.benefit} benefit. Overall score ${d.overall.toFixed(1)} of 10.`)
+      .style('cursor','pointer')
+      .style('opacity', d=> includedIds.has(d.id) ? 1 : 0.10)
+      .style('pointer-events', d=> includedIds.has(d.id) ? 'auto' : 'none');
+
+    dotG.append('circle')
+      .attr('class','dot-mark')
+      .attr('r', d=>priorityRadius(d.overall))
+      .style('fill', d=>`var(--cat-${THEME_SLOT[d.theme]})`)
+      .style('color', d=>`var(--cat-${THEME_SLOT[d.theme]})`)
+      .attr('stroke', d=> d.id===selectedId ? 'var(--text-primary)' : 'var(--surface)')
+      .attr('stroke-width', d=> d.id===selectedId ? 2.5 : 1.5);
+
+    dotG.filter(d=>d.overall>=8).append('circle')
+      .attr('class','priority-ring')
+      .attr('r', d=>priorityRadius(d.overall) + 4)
+      .attr('fill','none');
+
+    const ringLabelG = g.append('g').selectAll('g')
+      .data(BENEFITS.map(b=>({ b, r:(RING_BOUNDS[b][0]+RING_BOUNDS[b][1])/2 })))
+      .join('g');
+    ringLabelG.each(function(d){
+      const sel = d3.select(this);
+      [DIMS.cx - d.r, DIMS.cx + d.r].forEach(x=>{
+        const label = sel.append('text')
+          .attr('class','ring-label')
+          .attr('text-anchor','middle')
+          .attr('x', x)
+          .attr('y', DIMS.cy - 8)
+          .text(d.b);
+        const box = label.node().getBBox();
+        sel.insert('rect', 'text:last-of-type')
+          .attr('class','ring-label-bg')
+          .attr('x', box.x - 6)
+          .attr('y', box.y - 3)
+          .attr('width', box.width + 12)
+          .attr('height', box.height + 6)
+          .attr('rx', 5);
+      });
+    });
+
+    dotG
+      .on('mouseenter', (event,d)=>onHover(d,event))
+      .on('mousemove', (event,d)=>onHover(d,event))
+      .on('mouseleave', ()=>onHoverEnd())
+      .on('click', (event,d)=>onSelect(d.id))
+      .on('keydown', (event,d)=>{
+        if(event.key==='Enter' || event.key===' '){ event.preventDefault(); onSelect(d.id); }
+      });
+  }, [positioned, includedIds, selectedId]);
+
+  return h('div', { className:'radar-wrap' },
+    h('div', { className:'radar-sweep', 'aria-hidden':'true' }),
+    h('svg', {
+      ref: svgRef,
+      viewBox: '0 0 1000 1000',
+      className: 'radar-svg',
+      role: 'img',
+      'aria-label': 'Radar chart of sustainability technologies, arranged by theme sector and maturity ring'
+    })
+  );
+}
+
+function Legend(){
+  return h('div', { className:'legend' },
+    h('div', { className:'legend-block' },
+      h('div', { className:'legend-title' }, 'Priority score (dot size)'),
+      h('div', { className:'legend-size-demo' },
+        h('span', { className:'legend-size-dot', style:{ width:23, height:23 } }),
+        h('span', null, '8.0 and over'),
+        h('span', { className:'legend-size-dot', style:{ width:17, height:17 } }),
+        h('span', null, '6.0 – 7.9'),
+        h('span', { className:'legend-size-dot', style:{ width:13, height:13 } }),
+        h('span', null, 'Below 6.0')
+      )
+    ),
+    h('div', { className:'legend-block' },
+      h('div', { className:'legend-title' }, 'Dashed ring'),
+      h('div', { className:'legend-row' },
+        h('span', { className:'legend-priority-ring' }),
+        h('span', null, 'Priority signal · overall score ≥ 8.0')
+      )
+    )
+  );
+}
+
+function TableView({ data, onSelect, selectedId }){
+  const [sortKey, setSortKey] = useState('overall');
+  const [sortDir, setSortDir] = useState('desc');
+
+  function sortBy(key){
+    if(sortKey===key){ setSortDir(d=> d==='desc'?'asc':'desc'); }
+    else { setSortKey(key); setSortDir(key==='name'?'asc':'desc'); }
+  }
+
+  const sorted = useMemo(()=>{
+    const arr = [...data];
+    arr.sort((a,b)=>{
+      let av=a[sortKey], bv=b[sortKey];
+      if(typeof av === 'string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+      if(av<bv) return sortDir==='asc' ? -1 : 1;
+      if(av>bv) return sortDir==='asc' ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [data, sortKey, sortDir]);
+
+  function arrow(key){ return sortKey===key ? (sortDir==='asc' ? ' ▲' : ' ▼') : ''; }
+
+  return h('div', { className:'table-wrap' },
+    h('div', { className:'table-scroll' },
+      h('table', { className:'tech-table' },
+        h('thead', null,
+          h('tr', null,
+            h('th', { onClick:()=>sortBy('name') }, 'Technology', arrow('name')),
+            h('th', { onClick:()=>sortBy('theme') }, 'Theme', arrow('theme')),
+            h('th', { onClick:()=>sortBy('maturity') }, 'Maturity', arrow('maturity')),
+            h('th', { onClick:()=>sortBy('benefit') }, 'Benefit', arrow('benefit')),
+            h('th', { onClick:()=>sortBy('overall') }, 'Overall', arrow('overall'))
+          )
+        ),
+        h('tbody', null,
+          sorted.map(d => h('tr', { key:d.id, className: d.id===selectedId?'selected':'', onClick:()=>onSelect(d.id) },
+            h('td', null, h('div', { className:'name-cell' },
+              h('span', { className:'legend-swatch', style:{ background:`var(--cat-${THEME_SLOT[d.theme]})` } }),
+              d.name
+            )),
+            h('td', null, h('span', { className:'theme-pill' },
+              h('span', { className:'legend-swatch', style:{ background:`var(--cat-${THEME_SLOT[d.theme]})` } }),
+              d.theme
+            )),
+            h('td', null, h('span', { className:'maturity-pill' }, d.maturity)),
+            h('td', null, h('span', { className:'maturity-pill' }, d.benefit)),
+            h('td', { className:'num-cell' }, d.overall.toFixed(2))
+          )),
+          sorted.length===0
+            ? h('tr', null, h('td', { colSpan:'5', style:{ textAlign:'center', color:'var(--text-muted)', padding:'22px' } }, 'No technologies match the current filters.'))
+            : null
+        )
+      )
+    )
+  );
+}
+
+function Meter({ label, value, max, color }){
+  const pct = Math.max(0, Math.min(100, (value/max)*100));
+  return h('div', { className:'meter-row' },
+    h('div', { className:'meter-head' },
+      h('span', null, label),
+      h('span', { style:{ fontVariantNumeric:'tabular-nums', fontWeight:700 } }, (value.toFixed ? value.toFixed(1) : value) + ' / ' + max)
+    ),
+    h('div', { className:'meter-track' },
+      h('div', { className:'meter-fill', style:{ width:pct+'%', background:color } })
+    )
+  );
+}
+
+const FEEDLY_PROXY_URL = 'http://localhost:8787/api/articles';
+
+function LiveArticles({ tech }){
+  const [status, setStatus] = useState('loading');
+  const [articles, setArticles] = useState([]);
+
+  useEffect(()=>{
+    let active = true;
+    setStatus('loading');
+    setArticles([]);
+    fetch(`${FEEDLY_PROXY_URL}?query=${encodeURIComponent(tech.name)}`)
+      .then(res => { if(!res.ok) throw new Error('proxy_error'); return res.json(); })
+      .then(data => {
+        if(!active) return;
+        setArticles(data.articles || []);
+        setStatus('ready');
+      })
+      .catch(() => { if(active) setStatus('unavailable'); });
+    return () => { active = false; };
+  }, [tech.id]);
+
+  return h('div', { className:'live-articles' },
+    h('div', { className:'section-label' }, 'Latest from Feedly'),
+    status==='loading' ? h('p', { className:'live-status' }, 'Checking Feedly for recent coverage…') : null,
+    status==='unavailable' ? h('p', { className:'live-status' },
+      'Live articles unavailable. Start the local proxy (', h('code', null, 'python3 feedly_proxy.py'), ') with your Feedly key set, then reopen this card.'
+    ) : null,
+    status==='ready' && articles.length===0 ? h('p', { className:'live-status' }, 'No recent articles found for this technology.') : null,
+    status==='ready' && articles.length>0 ? h('div', { className:'article-list' },
+      articles.map((a,i) => h('a', {
+        key:i, className:'article-item', href:a.url, target:'_blank', rel:'noopener noreferrer'
+      },
+        h('div', { className:'article-title' }, a.title),
+        h('div', { className:'article-meta' },
+          a.source + (a.published ? ' · ' + new Date(a.published).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }) : '')
+        ),
+        a.summary ? h('div', { className:'article-summary' }, a.summary) : null
+      ))
+    ) : null
+  );
+}
+
+function DetailCard({ tech, onClose }){
+  const slot = THEME_SLOT[tech.theme];
+  return h('div', { className:'detail-card' },
+    h('div', { className:'detail-top' },
+      h('div', { className:'detail-badges' },
+        h('span', { className:'theme-pill' },
+          h('span', { className:'legend-swatch', style:{ background:`var(--cat-${slot})` } }),
+          tech.theme
+        )
+      ),
+      h('button', { className:'close-btn', onClick:onClose, 'aria-label':'Close details' }, '✕')
+    ),
+    h('h3', null, tech.name),
+    h('p', { className:'detail-desc' }, tech.description),
+    h('div', { className:'detail-badges' },
+      h('span', { className:'maturity-pill' }, tech.maturity),
+      h('span', { className:'maturity-pill' }, tech.benefit)
+    ),
+    h('div', null,
+      h(Meter, { label:'Overall assessment score', value:tech.overall, max:10, color:`var(--cat-${slot})` }),
+      h(Meter, { label:'Could materially benefit Defra', value:tech.material, max:10, color:'var(--accent-2)' })
+    ),
+    h('div', null,
+      h('div', { className:'section-label' }, 'Why it matters to Defra'),
+      h('p', { className:'rationale-text' }, tech.rationale)
+    ),
+    h(LiveArticles, { tech })
+  );
+}
+
+function IntroCard({ count, total }){
+  const counts = MATURITIES.map(m=> ({ m, n: DATA.filter(d=>d.maturity===m).length }));
+  const maxN = Math.max(...counts.map(c=>c.n));
+  return h('div', { className:'intro-card' },
+    h('div', { className:'eyebrow' }, 'Select a technology'),
+    h('h3', null, 'Explore the radar'),
+    h('p', null, 'Hover a dot for a quick summary, or click one — on the radar or in the table — to see the full Defra rationale and scoring here. Use the filters above to isolate a theme or maturity stage, or switch to table view for a sortable list.'),
+    h('div', { className:'section-label' }, 'Portfolio mix by maturity'),
+    counts.map(c => h('div', { className:'mix-row', key:c.m },
+      h('span', { className:'mix-label' }, c.m),
+      h('div', { className:'mix-bar-track' }, h('div', { className:'mix-bar-fill', style:{ width:(c.n/maxN*100)+'%' } })),
+      h('span', { className:'mix-count' }, c.n)
+    )),
+    h('div', { className:'section-label', style:{ marginTop:14 } }, 'Currently showing'),
+    h('p', { style:{ margin:0, fontSize:'0.8rem', color:'var(--text-secondary)' } },
+      h('strong', { style:{ color:'var(--text-primary)' } }, count), ' of ' + total + ' technologies match the active filters.'
+    )
+  );
+}
+
+function PriorityStrip({ items, activeId, onSelectPriority }){
+  return h('div', { className:'priority-strip' },
+    items.map((d,i) => h('div', {
+      key:d.id,
+      className: 'priority-card'+(d.id===activeId?' selected':''),
+      onClick: ()=>onSelectPriority(d.id)
+    },
+      h('div', { className:'priority-rank' }, 'PRIORITY #'+(i+1)),
+      h('div', { className:'priority-name' }, d.name),
+      h('div', { className:'priority-meta' },
+        h('span', { className:'theme-pill' },
+          h('span', { className:'legend-swatch', style:{ background:`var(--cat-${THEME_SLOT[d.theme]})` } }),
+          d.maturity
+        ),
+        h('span', { style:{ fontWeight:800, fontVariantNumeric:'tabular-nums' } }, d.overall.toFixed(1))
+      )
+    ))
+  );
+}
+
+function PriorityBriefingTable({ briefings, activeId, onSelect }){
+  const index = Math.max(0, briefings.findIndex(b => b.id === activeId));
+  const b = briefings[index];
+  const tech = DATA_BY_ID[b.id];
+  const slot = THEME_SLOT[tech.theme];
+  return h('div', { className:'table-wrap', style:{ marginTop:12 } },
+    h('table', { className:'briefing-table' },
+      h('thead', null,
+        h('tr', null,
+          h('th', null, 'Priority Technology'),
+          h('th', null, 'Why It Matters to Defra'),
+          h('th', null, 'What Defra Can Do (Practical Next Steps)')
+        )
+      ),
+      h('tbody', null,
+        h('tr', { key:b.id },
+          h('td', { className:'briefing-tech-cell', onClick:()=>onSelect(tech.id) },
+            h('span', { className:'briefing-rank' }, 'PRIORITY #'+(index+1)),
+            h('span', { className:'briefing-tech-name' }, tech.name),
+            h('span', { className:'briefing-badge' },
+              h('span', { className:'legend-swatch', style:{ background:`var(--cat-${slot})` } }),
+              tech.maturity + ' · ' + tech.overall.toFixed(1)
+            )
+          ),
+          h('td', { className:'briefing-why' }, b.whyItMatters),
+          h('td', null,
+            h('ul', { className:'briefing-steps' },
+              b.nextSteps.map((s,j) => h('li', { key:j },
+                h('strong', null, s.title + ': '), s.description
+              ))
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+function Tooltip({ info }){
+  if(!info) return null;
+  const { d, x, y } = info;
+  return h('div', { className:'tooltip-box', style:{ left:x+14, top:y+14 } },
+    h('div', { className:'tt-name' }, d.name),
+    h('div', { className:'tt-meta' }, d.theme),
+    h('div', { className:'tt-meta' }, d.maturity + ' · ' + d.benefit + ' · Overall ' + d.overall.toFixed(1))
+  );
+}
+
+function Modal({ onClose, children }){
+  useEffect(()=>{
+    function onKey(e){ if(e.key==='Escape') onClose(); }
+    document.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return ()=>{
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+  return h('div', { className:'modal-overlay', onClick:onClose },
+    h('div', { className:'modal-card', role:'dialog', 'aria-modal':'true', onClick:e=>e.stopPropagation() },
+      children
+    )
+  );
+}
+
+function IntroSplash({ closing, onProceed }){
+  return h('div', {
+    className: 'intro-splash'+(closing ? ' closing' : ''),
+    role:'dialog', 'aria-modal':'true', 'aria-label':'Introduction to the Technology Innovation Team'
+  },
+    h('div', { className:'intro-splash-card' },
+      h('div', { className:'intro-splash-eyebrow' }, 'Defra Group · Chief Technology Office'),
+      h('h1', { className:'intro-splash-title' }, 'Technology Innovation Team'),
+      h('div', { className:'intro-splash-columns' },
+        h('div', { className:'intro-splash-col' },
+          h('div', { className:'intro-splash-section' },
+            h('h2', null, 'Who are we?'),
+            h('p', null, 'We are the Technology Innovation Team. Residing in the Chief Technology Office, we explore emerging technologies to anticipate what’s next for Defra Group. Scanning the horizon for opportunities and risks, shaping strategy through evidence and insight, and helping you turn ideas into a reality that can deliver measurable value.')
+          ),
+          h('div', { className:'intro-splash-section' },
+            h('h2', null, 'What we stand for'),
+            h('p', null, 'We strive to make a positive impact and inspire others to do the same.'),
+            h('p', null, h('strong', null, 'Mission: '), 'To anticipate and shape the future of technology for Defra Group, identifying emerging opportunities, de-risking innovation through evidence and experimentation, and accelerating the adoption of technologies that deliver measurable impact for Defra and our customers.'),
+            h('p', null, h('strong', null, 'Values: '), 'We’re curious by default. We ask what’s next, not what’s normal. Our partners are at the heart of that journey, shaping every step with their needs, challenges, and ambitions.')
+          )
+        ),
+        h('div', { className:'intro-splash-col' },
+          h('div', { className:'intro-splash-section' },
+            h('h2', null, 'Why does the Emerging Technologies Radar exist?'),
+            h('p', null, 'The Radar is created every year because we need to understand the emerging digital technologies that are going to be important for Defra group, and why they will create value for our businesses.'),
+            h('p', null, 'At a time when budgets are under pressure and we are being challenged to do more with less, understanding the opportunities created by emerging digital technologies is vital.'),
+            h('p', null, 'This insight is critical if we are to deliver on government and ministerial priorities and realise the Prime Minister’s vision of strengthening our country with a decade of national renewal.')
+          )
+        )
+      ),
+      h('button', { className:'intro-splash-btn', onClick:onProceed }, 'Proceed to the Radar 2026')
+    )
+  );
+}
+
+function App(){
+  const [search, setSearch] = useState('');
+  const [activeThemes, setActiveThemes] = useState(()=> new Set(THEMES.map(t=>t.name)));
+  const [selectedId, setSelectedId] = useState(null);
+  const [hover, setHover] = useState(null);
+  const [view, setView] = useState('radar');
+  const [themePref, setThemePref] = useState('system');
+  const [activePriorityId, setActivePriorityId] = useState(PRIORITY_BRIEFINGS[0].id);
+  const [introVisible, setIntroVisible] = useState(true);
+  const [introClosing, setIntroClosing] = useState(false);
+
+  function closeIntro(){
+    setIntroClosing(true);
+    setTimeout(()=> setIntroVisible(false), 480);
+  }
+  function reopenIntro(){
+    setIntroClosing(false);
+    setIntroVisible(true);
+  }
+
+  useEffect(()=>{
+    const root = document.documentElement;
+    if(themePref==='system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', themePref);
+  }, [themePref]);
+
+  const filtered = useMemo(()=> DATA.filter(d=>
+    activeThemes.has(d.theme) &&
+    (search.trim()==='' ||
+      d.name.toLowerCase().includes(search.toLowerCase()) ||
+      d.description.toLowerCase().includes(search.toLowerCase()) ||
+      d.theme.toLowerCase().includes(search.toLowerCase()))
+  ), [search, activeThemes]);
+
+  const selected = DATA.find(d=>d.id===selectedId) || null;
+  const topPriority = useMemo(()=> [...DATA].sort((a,b)=>b.overall-a.overall).slice(0,5), []);
+
+  function toggleTheme(name){
+    setActiveThemes(prev=>{
+      const next = new Set(prev);
+      if(next.has(name)) next.delete(name); else next.add(name);
+      return next.size===0 ? new Set(THEMES.map(t=>t.name)) : next;
+    });
+  }
+  function resetFilters(){
+    setActiveThemes(new Set(THEMES.map(t=>t.name)));
+    setSearch('');
+  }
+  function clearThemes(){
+    setActiveThemes(new Set());
+  }
+  function cycleThemePref(){
+    setThemePref(p=> p==='system' ? 'dark' : p==='dark' ? 'light' : 'system');
+  }
+
+  return h('div', { className:'app-shell' },
+    introVisible ? h(IntroSplash, { closing:introClosing, onProceed:closeIntro }) : null,
+    h('div', { className:'header' },
+      h('div', { className:'brand' },
+        h('div', { className:'brand-bars' },
+          h('span', { className:'bar bar-a' }),
+          h('span', { className:'bar bar-b' })
+        ),
+        h('div', null,
+          h('div', { className:'eyebrow' }, 'Defra DDTS · Technology Innovation'),
+          h('h1', null, 'Sustainability Technology Radar'),
+          h('p', null, `A 2026 horizon scan of ${DATA.length} technologies mapped against sustainability themes, maturity and expected benefit to Defra group.`)
+        )
+      ),
+      h('div', { className:'header-controls' },
+        h('input', {
+          className:'search-input', type:'text', placeholder:'Search technologies…',
+          value:search, onChange:e=>setSearch(e.target.value), 'aria-label':'Search technologies'
+        }),
+        h('div', { className:'segmented', role:'tablist', 'aria-label':'View mode' },
+          h('button', { className: view==='radar'?'active':'', onClick:()=>setView('radar') }, 'Radar'),
+          h('button', { className: view==='table'?'active':'', onClick:()=>setView('table') }, 'Table')
+        ),
+        h('button', { className:'icon-btn', onClick:cycleThemePref, title:'Toggle colour theme' },
+          themePref==='system' ? 'Theme: Auto' : themePref==='dark' ? 'Theme: Dark' : 'Theme: Light'
+        ),
+        h('button', { className:'icon-btn', onClick:reopenIntro }, 'Return to introduction')
+      )
+    ),
+    h('div', { className:'panel intro-banner' },
+      h(IntroCard, { count:filtered.length, total:DATA.length })
+    ),
+    h('div', { className:'main-grid' },
+      h('div', { className:'panel chart-panel' },
+        h('div', { className:'chart-caption' },
+          h('h2', null, view==='radar' ? 'Radar view' : 'Table view'),
+          h('span', { className:'count-pill' }, `${filtered.length} / ${DATA.length} shown`)
+        ),
+        view==='radar'
+          ? h(RadarChart, {
+              data:filtered, allData:DATA, selectedId:selectedId, onSelect:setSelectedId,
+              onHover:(d,e)=>setHover({ d, x:e.clientX, y:e.clientY }),
+              onHoverEnd:()=>setHover(null)
+            })
+          : h(TableView, { data:filtered, onSelect:setSelectedId, selectedId:selectedId }),
+        h(Legend, null)
+      ),
+      h('div', { className:'panel filter-panel' },
+        h('div', { className:'filter-panel-head' },
+          h('div', { className:'section-label' }, 'Filter by theme'),
+          h('button', { className:'clear-btn', onClick:clearThemes }, 'Clear all')
+        ),
+        h('div', { className:'filter-group' },
+          THEMES.map(t => h('button', {
+            key:t.key,
+            className: 'chip'+(activeThemes.has(t.name) ? '' : ' inactive'),
+            onClick: ()=>toggleTheme(t.name)
+          },
+            h('span', { className:'dot-swatch', style:{ background:`var(--cat-${t.slot})` } }),
+            t.name
+          ))
+        ),
+        h('button', { className:'reset-btn', onClick:resetFilters }, 'Reset filters')
+      )
+    ),
+    h('div', { className:'panel priority-panel' },
+      h('div', { className:'section-label' }, 'Priority technologies'),
+      h('div', { className:'priority-intro' },
+        h('p', null, 'The top-rated emerging technologies have been ranked using a weighted scoring model based on four key criteria: the extent to which each technology could help Defra Group achieve sustainability goals, the potential to reduce emissions, waste or resource use, how useful it is across Defra and its partner organisations, and how practical it is to implement in terms of skills, suppliers and regulatory feasibility. The scoring is designed to reflect both strategic value and delivery readiness, so the highest-ranked technologies are the ones that are most likely to deliver meaningful sustainability outcomes in a realistic and scalable way.'),
+        h('p', null, 'This approach helps decision-makers focus attention on the technologies that matter most. By combining environmental impact with cross-organisational relevance and feasibility, the ranking identifies the most important emerging technologies to prioritise for further development, investment and adoption. In short, the model supports a more evidence-based selection process, ensuring that attention is directed towards solutions with the greatest potential to support Defra Group’s sustainability objectives.')
+      ),
+      h(PriorityStrip, { items:topPriority, activeId:activePriorityId, onSelectPriority:setActivePriorityId }),
+      h('div', { className:'section-label', style:{ marginTop:16 } }, 'Strategic briefing — adoption roadmap for the top 5'),
+      h(PriorityBriefingTable, { briefings:PRIORITY_BRIEFINGS, activeId:activePriorityId, onSelect:setSelectedId })
+    ),
+    h('div', { className:'footer-note' },
+      'Technology names, theme groupings, maturity stages, benefit ratings and overall scores are adapted from Defra DDTS’s 2026 Emerging Technology Radar and the "Mapping of Emerging Digital Technologies to Business Areas" sustainability workbook. Positions within each sector/ring are laid out for legibility and do not encode additional meaning beyond theme and maturity. This tool is intended to support internal discussion and prioritisation, not as a definitive or official published radar.'
+    ),
+    hover ? h(Tooltip, { info:hover }) : null,
+    selected
+      ? h(Modal, { onClose:()=>setSelectedId(null) },
+          h(DetailCard, { tech:selected, onClose:()=>setSelectedId(null) })
+        )
+      : null
+  );
+}
+
+const rootEl = ReactDOM.createRoot(document.getElementById('root'));
+rootEl.render(h(App));
+</script>
+</body>
+</html>
